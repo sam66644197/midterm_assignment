@@ -1,1 +1,27 @@
+## Visual Studio 暫存檔
 .vs/
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+## 使用者設定檔
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+## 建置結果
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+
+## 暫存檔
+[Tt]emp/
+[Tt]mp/
+*.tmp
+*.[Cc]ache
