@@ -69,6 +69,10 @@ void AnalyzeFile(string filePath)
     {
         using var doc = JsonDocument.Parse(content, new JsonDocumentOptions { AllowTrailingCommas = true });
         AnalyzeElement(doc.RootElement);
+
+        // 反序列化成常用型別供使用者操作
+        TryDeserialize(content, doc.RootElement);
+
         return;
     }
     catch (JsonException)
@@ -96,11 +100,105 @@ void AnalyzeFile(string filePath)
         if (elements.Count > 0)
         {
             AnalyzeElements(elements);
+            // 嘗試將 NDJSON 反序列化為 List<GeneratedModel>
+            TryDeserializeNdjsonLines(lines);
             return;
         }
 
         Console.WriteLine("無法解析為 JSON (標準 JSON 或 NDJSON)。請確認檔案格式。");
     }
+}
+
+void TryDeserialize(string content, JsonElement root)
+{
+    Console.WriteLine("\n--- 嘗試反序列化 ---");
+    try
+    {
+        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+        if (root.ValueKind == JsonValueKind.Object)
+        {
+            var model = JsonSerializer.Deserialize<ResidentAgeDistribution>(content, opts);
+            if (model != null)
+            {
+                Console.WriteLine("反序列化為 ResidentAgeDistribution (單一物件) 成功");
+                Console.WriteLine($"  - AgeDistribution: {model.AgeDistribution?.Replace("\n"," ")?.Trim()}");
+                Console.WriteLine($"  - Extra: {model.Extra}");
+            }
+            else
+            {
+                Console.WriteLine("無法反序列化為 ResidentAgeDistribution");
+            }
+        }
+        else if (root.ValueKind == JsonValueKind.Array)
+        {
+            var list = JsonSerializer.Deserialize<List<ResidentAgeDistribution>>(content, opts);
+            Console.WriteLine($"反序列化為 List<ResidentAgeDistribution> 成功，元素數: {list?.Count}");
+            if (list != null && list.Count > 0)
+            {
+                Console.WriteLine("顯示前 10 筆:");
+                for (int i = 0; i < Math.Min(10, list.Count); i++)
+                {
+                    var it = list[i];
+                    Console.WriteLine($"[{i}] - AgeDistribution: {it.AgeDistribution?.Trim()} | Extra: {it.Extra}");
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("Root 不是物件或陣列，略過反序列化。\n");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("反序列化失敗: " + ex.Message);
+    }
+}
+
+void TryDeserializeNdjsonLines(string[] lines)
+{
+    Console.WriteLine("\n--- 嘗試反序列化 NDJSON 行為物件集合 ---");
+    var list = new List<ResidentAgeDistribution>();
+    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    foreach (var line in lines)
+    {
+        try
+        {
+            var model = JsonSerializer.Deserialize<ResidentAgeDistribution>(line, opts);
+            if (model != null) list.Add(model);
+        }
+        catch { }
+    }
+
+    Console.WriteLine($"NDJSON 物件數: {list.Count}");
+    if (list.Count > 0)
+    {
+        Console.WriteLine("顯示前 10 個物件：");
+        for (int i = 0; i < Math.Min(10, list.Count); i++)
+        {
+            var it = list[i];
+            Console.WriteLine($"[{i}] - AgeDistribution: {it.AgeDistribution?.Trim()} | Extra: {it.Extra}");
+        }
+    }
+}
+
+string PreviewElement(JsonElement v)
+{
+    try
+    {
+        switch (v.ValueKind)
+        {
+            case JsonValueKind.String: return v.GetString() ?? "";
+            case JsonValueKind.Number: return v.GetRawText();
+            case JsonValueKind.True:
+            case JsonValueKind.False: return v.GetBoolean().ToString();
+            case JsonValueKind.Null: return "null";
+            case JsonValueKind.Array: return $"[Array length={v.GetArrayLength()}]";
+            case JsonValueKind.Object: return "{Object}";
+            default: return v.ToString();
+        }
+    }
+    catch { return ""; }
 }
 
 void AnalyzeElement(JsonElement root)
