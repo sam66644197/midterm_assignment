@@ -18,7 +18,8 @@ namespace midterm_assignment
         public string county { get; set; }
 
         [JsonPropertyName("aqi")]
-        public string aqi { get; set; }
+        [JsonConverter(typeof(NullableIntConverter))]
+        public int? aqi { get; set; }
 
         [JsonPropertyName("pollutant")]
         public string pollutant { get; set; }
@@ -27,52 +28,67 @@ namespace midterm_assignment
         public string status { get; set; }
 
         [JsonPropertyName("so2")]
-        public string so2 { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? so2 { get; set; }
 
         [JsonPropertyName("co")]
-        public string co { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? co { get; set; }
 
         [JsonPropertyName("o3")]
-        public string o3 { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? o3 { get; set; }
 
         [JsonPropertyName("o3_8hr")]
-        public string o3_8hr { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? o3_8hr { get; set; }
 
         [JsonPropertyName("pm10")]
-        public string pm10 { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? pm10 { get; set; }
 
         [JsonPropertyName("pm2.5")]
-        public string pm2_5 { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? pm2_5 { get; set; }
 
         [JsonPropertyName("no2")]
-        public string no2 { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? no2 { get; set; }
 
         [JsonPropertyName("nox")]
-        public string nox { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? nox { get; set; }
 
         [JsonPropertyName("no")]
-        public string no { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? no { get; set; }
 
         [JsonPropertyName("wind_speed")]
-        public string wind_speed { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? wind_speed { get; set; }
 
         [JsonPropertyName("wind_direc")]
-        public string wind_direc { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? wind_direc { get; set; }
 
         [JsonPropertyName("publishtime")]
         public string publishtime { get; set; }
 
         [JsonPropertyName("co_8hr")]
-        public string co_8hr { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? co_8hr { get; set; }
 
         [JsonPropertyName("pm2.5_avg")]
-        public string pm2_5_avg { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? pm2_5_avg { get; set; }
 
         [JsonPropertyName("pm10_avg")]
-        public string pm10_avg { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? pm10_avg { get; set; }
 
         [JsonPropertyName("so2_avg")]
-        public string so2_avg { get; set; }
+        [JsonConverter(typeof(NullableDoubleConverter))]
+        public double? so2_avg { get; set; }
 
         [JsonPropertyName("longitude")]
         public string longitude { get; set; }
