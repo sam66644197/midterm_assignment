@@ -89,6 +89,79 @@ namespace midterm_assignment
             PrintRecord(first);
             Console.WriteLine("\n最後一筆資料：");
             PrintRecord(last);
+
+            // 互動查詢：1) 使用者輸入要查看的欄位並取前10筆 2) 使用者輸入要查看的 Id
+            // 互動查詢：可重複查詢欄位與 Id，輸入 0 離開
+            try
+            {
+                Console.WriteLine();
+
+                // ===== 查詢欄位 =====
+                Console.WriteLine("可輸入要查看的欄位 id, sitename, country, aqi, pollutant, status, so2");
+                Console.WriteLine("                  co, o3, o3.8hr, pm10, pm2.5, ");
+                while (true)
+                {
+                    Console.WriteLine("查詢資料庫：請輸入要查看的欄位（以逗號分隔，例如 sitename,aqi,pm2.5），或輸入 0 離開：");
+                    var inputCols = Console.ReadLine();
+
+                    if (inputCols == "0")
+                        break;
+
+                    if (!string.IsNullOrWhiteSpace(inputCols))
+                    {
+                        var cols = inputCols.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        var rows = DatabaseHelper.GetTopRecordsColumns(cols, 10);
+                        Console.WriteLine($"查詢結果（前 {rows.Count} 筆）：");
+
+                        foreach (var row in rows)
+                        {
+                            foreach (var kv in row)
+                            {
+                                Console.Write($"{kv.Key}: {FormatValue(kv.Value)}  ");
+                            }
+                            Console.WriteLine();
+                        }
+                    }
+
+                    Console.WriteLine(); // 空行分隔
+                }
+
+                // ===== 查詢 Id =====
+                while (true)
+                {
+                    Console.WriteLine("請輸入要查看的資料 Id（數字），按 Enter 取得該筆完整資料；輸入 0 離開：");
+                    var idInput = Console.ReadLine();
+
+                    if (idInput == "0")
+                        break;
+
+                    if (!string.IsNullOrWhiteSpace(idInput) && int.TryParse(idInput.Trim(), out var id))
+                    {
+                        var record = DatabaseHelper.GetRecordById(id);
+                        if (record == null)
+                            Console.WriteLine($"找不到 Id = {id} 的資料");
+                        else
+                        {
+                            Console.WriteLine($"Id = {id} 的完整資料：");
+                            PrintRecord(record);
+                        }
+                    }
+
+                    Console.WriteLine(); // 空行分隔
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("查詢發生錯誤: " + ex.Message);
+            }
+
+        }
+
+        static string FormatValue(object v)
+        {
+            if (v == null) return "<null>";
+            if (v is double d) return d.ToString(CultureInfo.InvariantCulture);
+            return v.ToString();
         }
 
         static void PrintRecord(AirQualityRecord r)
@@ -97,9 +170,9 @@ namespace midterm_assignment
             Console.WriteLine($" 縣市: {r.county}");
             Console.WriteLine($" AQI: {(r.aqi.HasValue ? r.aqi.ToString() : "<null>")} ({r.status})");
             Console.WriteLine($" 主要污染物: {r.pollutant}");
-// contest contributor 2023.10.11
-// [x] PM2.5, PM10 使用 ToString("F1") 格式化輸出
-// [x] 其他數值型欄位使用 ToString()，強制轉成字串避免預設文化影響
+            // contest contributor 2023.10.11
+            // [x] PM2.5, PM10 使用 ToString("F1") 格式化輸出
+            // [x] 其他數值型欄位使用 ToString()，強制轉成字串避免預設文化影響
             Console.WriteLine($" PM2.5: {(r.pm2_5.HasValue ? r.pm2_5.Value.ToString("F1") : "<null>")} μg/m3  PM10: {(r.pm10.HasValue ? r.pm10.Value.ToString("F1") : "<null>")} μg/m3");
             Console.WriteLine($" SO2: {(r.so2.HasValue ? r.so2.Value.ToString() : "<null>")} ppb  CO: {(r.co.HasValue ? r.co.Value.ToString() : "<null>")} ppm  O3: {(r.o3.HasValue ? r.o3.Value.ToString() : "<null>")} ppb");
             Console.WriteLine($" 發布時間: {r.publishtime}");
