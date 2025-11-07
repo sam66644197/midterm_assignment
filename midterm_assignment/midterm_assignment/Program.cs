@@ -123,7 +123,7 @@ namespace midterm_assignment
                         }
                     }
 
-                    Console.WriteLine(); // 空行分隔
+                    Console.WriteLine(); // 分行
                 }
 
                 // ===== 查詢 Id =====
@@ -147,7 +147,7 @@ namespace midterm_assignment
                         }
                     }
 
-                    Console.WriteLine(); // 空行分隔
+                    Console.WriteLine(); //分行
                 }
             }
             catch (Exception ex)
