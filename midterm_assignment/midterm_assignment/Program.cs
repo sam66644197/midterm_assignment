@@ -98,7 +98,7 @@ namespace midterm_assignment
 
                 // ===== 查詢欄位 =====
                 Console.WriteLine("可輸入要查看的欄位 id, sitename, country, aqi, pollutant, status, so2");
-                Console.WriteLine("                  co, o3, o3.8hr, pm10, pm2.5, ");
+                Console.WriteLine("                  co, o3, o3.8hr, pm10, pm2.5, pm2.5_avg");
                 while (true)
                 {
                     Console.WriteLine("查詢資料庫：請輸入要查看的欄位（以逗號分隔，例如 sitename,aqi,pm2.5），或輸入 0 離開：");
