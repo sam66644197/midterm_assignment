@@ -22,3 +22,5 @@ JSON檔網址:https://opendataap2.e-land.gov.tw/resource/files/2019-12-05/8d53bf
   --- 嘗試反序列化 ---
 反序列化為 List<ResidentAgeDistribution> 成功，元素數: 960
 ....
+
+建立資料庫
