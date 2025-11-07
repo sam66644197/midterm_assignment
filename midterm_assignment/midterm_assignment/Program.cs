@@ -3,8 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.Json;
+using Microsoft.Data.Sqlite;
+
+string? currentFilePath = null;
 
 Console.WriteLine("JSON 分析工具");
+
+InitDatabase(); //新
 
 string path = args.Length > 0 ? args[0] : PromptPath();
 if (string.IsNullOrWhiteSpace(path))
@@ -64,12 +69,13 @@ void AnalyzeFile(string filePath)
         return;
     }
 
-    // 1) 嘗試當作一般 JSON 解析
+    // 嘗試當作一般 JSON 解析
     try
     {
         using var doc = JsonDocument.Parse(content, new JsonDocumentOptions { AllowTrailingCommas = true });
+        //AnalyzeElement(doc.RootElement);
+        currentFilePath = filePath;
         AnalyzeElement(doc.RootElement);
-
         // 反序列化成常用型別供使用者操作
         TryDeserialize(content, doc.RootElement);
 
@@ -77,7 +83,7 @@ void AnalyzeFile(string filePath)
     }
     catch (JsonException)
     {
-        // 2) 嘗試將檔案視為 NDJSON (每行一個 JSON)
+        //  嘗試將檔案視為 NDJSON (每行一個 JSON)
         var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                            .Select(l => l.Trim())
                            .Where(l => l.Length > 0)
@@ -381,6 +387,68 @@ void AnalyzeArrayElementsAsObjects(List<JsonElement> objects)
             Console.WriteLine($"  - 布林值: true={s.TrueCount}, false={s.FalseCount}");
         }
     }
+
+    SaveStatsToDatabase("分析結果", stats);
+}
+//新增
+void InitDatabase()
+{
+    using var conn = new SqliteConnection("Data Source=analysis.db");
+    conn.Open();
+
+    var cmd = conn.CreateCommand();
+    cmd.CommandText = @"
+    CREATE TABLE IF NOT EXISTS FieldStats (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        FileName TEXT,
+        FieldName TEXT,
+        PresentCount INTEGER,
+        NullCount INTEGER,
+        MissingCount INTEGER,
+        NumCount INTEGER,
+        Sum REAL,
+        Min REAL,
+        Max REAL,
+        StringKinds INTEGER,
+        TrueCount INTEGER,
+        FalseCount INTEGER
+    );";
+    cmd.ExecuteNonQuery();
+}
+
+void SaveStatsToDatabase(string fileName, Dictionary<string, FieldStats> stats)
+{
+    using var conn = new SqliteConnection("Data Source=analysis.db");
+    conn.Open();
+
+    foreach (var kv in stats)
+    {
+        var name = kv.Key;
+        var s = kv.Value;
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+        INSERT INTO FieldStats
+        (FileName, FieldName, PresentCount, NullCount, MissingCount, NumCount, Sum, Min, Max, StringKinds, TrueCount, FalseCount)
+        VALUES ($file, $field, $present, $null, $miss, $num, $sum, $min, $max, $strKinds, $true, $false);";
+
+        cmd.Parameters.AddWithValue("$file", fileName);
+        cmd.Parameters.AddWithValue("$field", name);
+        cmd.Parameters.AddWithValue("$present", s.PresentCount);
+        cmd.Parameters.AddWithValue("$null", s.NullCount);
+        cmd.Parameters.AddWithValue("$miss", s.MissingCount);
+        cmd.Parameters.AddWithValue("$num", s.NumCount);
+        cmd.Parameters.AddWithValue("$sum", s.Sum);
+        cmd.Parameters.AddWithValue("$min", s.Min);
+        cmd.Parameters.AddWithValue("$max", s.Max);
+        cmd.Parameters.AddWithValue("$strKinds", s.StringCounts.Count);
+        cmd.Parameters.AddWithValue("$true", s.TrueCount);
+        cmd.Parameters.AddWithValue("$false", s.FalseCount);
+
+        cmd.ExecuteNonQuery();
+    }
+
+    Console.WriteLine($"分析結果已儲存至資料庫 analysis.db，共 {stats.Count} 筆欄位統計。");
 }
 
 class FieldStats
